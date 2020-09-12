@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>test06</title>
+        <style>
+            /*.example {
+                border: 1px solid #ccc;
+                padding: 10px;
+            }*/
+            #drop_zone {
+                border: 2px dashed #bbb;
+                border-radius: 5px;
+                color: #bbb;
+                padding: 25px;
+                text-align: center;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="example">
+            <!--<input type="file" id="files" name="files[]" multiple />-->
+            <div id="drop_zone">Drop file here</div>
+            <output id="list"></output>
+        </div>
+        <input type="button" value="edit" id="edit" onClick=changeEditable()> 
+        <!--<input type="button" value="行+" onClick=AddRow()> 
+        <input type="button" value="行-" onClick=DelRow()>
+        <input type="button" value="列+" onClick=AddCol()> 
+        <input type="button" value="列-" onClick=DelCol()>-->
+        <input type="button" value="delete first line" onClick=deleteFirstLine()>
+        <div  class="table">
+            <table id="tbl" border="1">
+            </table>
+        </div>
+        <script src="jquery-1.11.3.min.js"></script>
+        <script>
+            //テーブルの編集の可・不可を変更
+            function changeEditable() {
+                //if ($(".myTD").prop('contentEditable') === "true") {
+                if ($("#edit").val()==="save") {
+                    $(".myTD").attr('contentEditable', false);
+                    $("#edit").val("edit");
+                    setData();
+                }
+                else {
+                    $(".myTD").attr('contentEditable', true);
+                    $("#edit").val("save");
+                }
+
+            }
+            //テーブルの最初の行を消す(コメント行削除)
+            function deleteFirstLine() {
+                DelRow();
+                $("#edit").val("save");
+            }
+            // 行を追加
+            function AddRow()
+            {
+                // 新しい行を追加
+                var newRow = tbl.insertRow();
+                for (var i = 0; i < tbl.rows[0].cells.length; i++) {
+                    // 新しい行にセルを作っていく
+                    var newCell = newRow.insertCell();
+                }
+            }
+            // 行を削除
+            function DelRow()
+            {
+                // 行の数が１以下だったらやめる
+                if (tbl.rows.length <= 1) {
+                    return;
+                }
+                // 最後の行を削除する
+                //tbl.deleteRow(tbl.rows.length - 1);
+                // 先頭の行を削除する
+                tbl.deleteRow(0);
+            }
+            // 列を追加
+            function AddCol()
+            {
+                for (var i = 0; i < tbl.rows.length; i++) {
+                    // 全ての行に１列ずつ追加
+                    var newCell = tbl.rows[i].insertCell();
+                }
+            }
+            // 列を削除
+            function DelCol()
+            {
+                // 列の数が１こ以下だったらやめる
+                if (tbl.rows[0].cells.length <= 1) {
+                    return;
+                }
+                for (var i = 0; i < tbl.rows.length; i++) {
+                    // 全ての行で１列ずつ削除
+                    tbl.rows[i].deleteCell(tbl.rows[i].length - 1);//正しく動作しない
+                }
+            }
+
+            //ダイアログでファイルが選択された時
+            /*document.getElementById('files').addEventListener("change", function (evt) {
+             var files = evt.target.files; // FileList object
+             readFiles(files);
+             }, false);*/
+
+            //ドラッグ&ドロップでファイルが選択された時
+            var dropZone = document.getElementById('drop_zone');
+            dropZone.addEventListener('dragover', function (evt) {
+                evt.stopPropagation();
+                evt.preventDefault();
+                evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.      
+            }, false);
+            dropZone.addEventListener('drop', function (evt) {
+                evt.stopPropagation();
+                evt.preventDefault();
+                var files = evt.dataTransfer.files; // FileList object.
+                readFiles(files);
+            }, false);
+
+            //選択されたファイルを読み込み
+            function readFiles(files) {
+                //FileReaderの作成
+                var reader = new FileReader();
+                // files is a FileList of File objects. List some properties.
+                var output = [];
+                console.log("files: " + files.length);
+                for (var i = 0; i < files.length; i++) {
+                    f = files[i];
+                    output.push('<p><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ',
+                            f.size, ' bytes, last modified: ',
+                            f.lastModifiedDate.toLocaleDateString(), '</p>');
+                    //テキスト形式で読み込む
+                    reader.readAsText(f);
+                    //読込終了後の処理
+                    reader.onload = function (ev) {
+                        //テキストエリアに表示する
+                        //document.test.txt.value = reader.result;
+                        createArray(reader.result);
+                        setData();
+                    };
+                }
+                document.getElementById('list').innerHTML = output.join('');
+            }
+
+            //読み込んだファイルを配列に
+            function createArray(txtData) {
+                //一行ごとに分ける
+                if (txtData.match(/\r/))
+                    var txtLine = txtData.split("\r\n");
+                else
+                    txtLine = txtData.split("\n");
+                //空白を全て,にして分ける
+                var maxCol = 0;
+                for (var i = 0; i < txtLine.length; i++) {
+                    txtLine[i] = txtLine[i].replace(/\s/g, ",");
+                    txtLine[i] = txtLine[i].replace(/　/g, ",");
+                    txtLine[i] = txtLine[i].split(",");
+                    //何もない要素は削除
+                    for (var j = txtLine[i].length - 1; j >= 0; j--) {
+                        if (txtLine[i][j] === "")
+                            txtLine[i].splice(j, 1);
+                    }
+                    /*for (var j = 0; j < txtLine[i].length; j++) {
+                     if (txtLine[i][j] === "")
+                     txtLine[i].splice(j, 1);
+                     }*/
+                    if (maxCol < txtLine[i].length)
+                        maxCol = txtLine[i].length;
+                    console.log(txtLine[i]);
+                }
+                //各行の列の先頭が数値かどうか判定
+                for (var i = txtLine.length - 1; i >= 0; i--) {
+                    if (txtLine[i].length === 0)
+                        txtLine.splice(i, 1);
+                }
+                /*for (var i = 0; i < txtLine.length; i++) {
+                 if (txtLine[i].length === 0)
+                 txtLine.splice(i, 1);
+                 }*/
+                createTable(txtLine, maxCol);
+            }
+            //表を作成
+            function createTable(txtLine, maxCol) {
+                console.log("rows: " + txtLine.length);//行数
+                console.log("cols: " + maxCol);//列数
+                $("#tbl").html("");//初期化
+                for (var i = 0; i < txtLine.length; i++)
+                    AddRow();//行生成
+                for (var i = 0; i < maxCol; i++)
+                    AddCol();//列生成
+                $("td").attr("class", "myTD");//クラス設定
+                for (var i = 0; i < txtLine.length; i++) {
+                    for (var j = 0; j < txtLine[i].length; j++) {
+                        tbl.rows[i].cells[j].innerHTML = txtLine[i][j];//値代入
+                    }
+                }
+                $(".myTD").attr('contentEditable', false);
+                $("#edit").val("edit");
+            }
+            //数値データを設定
+            function setData() {
+                var data = new Array();
+                for (var i = 0; i < tbl.rows.length; i++) {
+                    data[i] = new Array();
+                    for (var j = 0; j < tbl.rows[i].cells.length; j++) {
+                        tbl.rows[i].cells[j].innerHTML = tbl.rows[i].cells[j].innerHTML.replace("<br>", "");
+                        if (tbl.rows[i].cells[j].innerHTML == "")
+                            ;
+                        else if (isNaN(tbl.rows[i].cells[j].innerHTML))
+                            data[i][j] = tbl.rows[i].cells[j].innerHTML;//文字列
+                        else
+                            data[i][j] = Number(tbl.rows[i].cells[j].innerHTML);//数値
+                        //console.log(data[i][j]);
+                    }
+                }
+                parent.addData(data);
+            }
+        </script>
+
+    </body>
+</html>

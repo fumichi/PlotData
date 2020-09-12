@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>サンプルページ</title>
+        <script>
+            var cmndata = new Array();
+            function addData(data) {
+                cmndata = data;
+                /*for (var i = 0; i < cmndata.length; i++) {
+                    for (var j = 0; j < cmndata[i].length; j++) {
+                        console.log(cmndata[i][j]);
+                    }
+                }*/
+            }
+            function test() {
+                return  cmndata;
+            }
+        </script>
+    </head>
+
+    <frameset cols="300,*">
+        <frame name="menu" src="menu.html" id="leftFrame">
+            <frame name="contents" src="contents.html" id="rightFrame">
+                </frameset>
+
+                </html>

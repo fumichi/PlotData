@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>PlotData</title>
+        <style>
+            #canvas {
+                border: 1px solid #ccc;
+                position:relative;
+            }
+            .label {
+                position:absolute;
+                top:0px;
+                left:0px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <script src="cpick.js"></script>
+        <input type="button" value="plot" id="plot" onClick=plot()> 
+        <input type="button" value="add" id="add" onClick=add()>
+        X: 
+        <select id="X_axis">
+            <option selected>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option> 
+        </select>
+        Y: 
+        <select id="Y_axis">
+            <option>1</option>
+            <option selected>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option> 
+        </select>
+        <input type="text" name="c1" value="#ff0000" size="6" id="t1" class="html5jp-cpick [coloring:true]" />
+        <input type="button" value="scale" id="scale" onClick=scale()>
+        <div id="mouse_xy" style="text-align: right;">(0.00000, 0.00000)</div>  
+        <div id="canvas" >
+            <div class="label" id="xmin">xmin</div>
+            <div class="label" id="xmax">xmax</div>
+            <div class="label" id="ymin">ymin</div>
+            <div class="label" id="ymax">ymax</div>
+        </div>
+
+        <script src="three.min.js"></script>
+        <script src="jquery-1.11.3.min.js"></script>
+        <script src="helvetiker_regular.typeface.js"></script>
+        <script src="script.js"></script>
+        <script>
+            function plot() {
+                data = parent.test();
+                setAxis();
+                plotData(0, $("#t1").val());
+                drawFrame(frame.X, frame.X + frame.Width, frame.Y, frame.Y + frame.Height);
+                //addOption();
+            }
+            function add() {
+                data = data.concat(parent.test());
+                setAxis();
+                plotData(dataMesh.length, $("#t1").val());
+                drawFrame(frame.X, frame.X + frame.Width, frame.Y, frame.Y + frame.Height);
+                //addOption();
+            }
+            function scale() {
+                frame.xmin = d.xmin-(d.xmax-d.xmin)/20;
+                frame.xmax = d.xmax+(d.xmax-d.xmin)/20;
+                frame.ymin = d.ymin-(d.ymax-d.ymin)/20;
+                frame.ymax = d.ymax+(d.ymax-d.ymin)/20;
+                drawFrame(frame.X, frame.X + frame.Width, frame.Y, frame.Y + frame.Height);
+                replotData();
+            }
+            function setAxis() {
+                var select;
+                select = document.getElementById('X_axis');
+                for (var i = 0; i < select.length; i++)
+                    if (select.options[i].selected)
+                        frame.X_axis = i;
+                select = document.getElementById('Y_axis');
+                for (var i = 0; i < select.length; i++)
+                    if (select.options[i].selected)
+                        frame.Y_axis = i;
+            }
+            function addOption() {
+                var select;
+                select = document.getElementById('X_axis');
+                for (var i = 0; i < select.length; i++)
+                    select.options[i] = null;
+                for (var i = 1; i <= maxCol; i++) {
+                    var option = document.createElement('option');
+                    option.value = i.toString();
+                    if (i === frame.X_axis)
+                        option.selected = true;
+                    //画面に表示されるテキスト部分は createTextNode で作って、optionの子要素として追加
+                    option.appendChild(document.createTextNode(i.toString()));
+                    //プルダウンに追加
+                    select.appendChild(option);
+                }
+                select = document.getElementById('Y_axis');
+                for (var i = 0; i < select.length; i++)
+                    select.options[i] = null;
+                for (var i = 1; i <= maxCol; i++) {
+                    var option = document.createElement('option');
+                    option.value = i.toString();
+                    if (i === frame.Y_axis)
+                        option.selected = true;
+                    //画面に表示されるテキスト部分は createTextNode で作って、optionの子要素として追加
+                    option.appendChild(document.createTextNode(i.toString()));
+                    //プルダウンに追加
+                    select.appendChild(option);
+                }
+            }
+        </script>
+    </body>
+</html>
